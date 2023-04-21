@@ -5,7 +5,22 @@ from qiskit.visualization import plot_histogram
 from math import gcd
 from numpy.random import randint
 import pandas as pd
-from fractions import Fraction
+
+def cfa(phi, err=0.0001):
+    s_terms = [int(phi)]
+    
+    while (phi - int(phi)) > err:
+        phi = 1 / (phi - int(phi))
+        s_terms.append(int(phi)) 
+    
+    p = [0, 1]
+    q = [1, 0]
+    
+    for it in s_terms:
+        p.append(p[-1]*it + p[-2])
+        q.append(q[-1]*it + q[-2])
+    
+    return p[-1], q[-1]
 
 def c_amod15(a, power):
     """Controlled multiplication by a mod 15"""
@@ -70,7 +85,8 @@ def qpe_amod15(a):
     return phase
 
 def classical_part(N):
-    a = randint(2, N)
+    a = 2
+    #a = randint(2, N)
     print("a = {}".format(a))
     
     while gcd(a, N) != 1:
@@ -84,8 +100,8 @@ def classical_part(N):
         attempt += 1
         print("\nAttempt %i:" % attempt)
         phase = qpe_amod15(a) # Phase = s/r
-        frac = Fraction(phase).limit_denominator(N) # Denominator should (hopefully!) tell us r
-        r = frac.denominator
+        r = cfa(phase)[1]
+        
         print("Result: r = %i" % r)
         if phase != 0:
             # Guesses for factors are gcd(x^{r/2} ±1 , 15)
